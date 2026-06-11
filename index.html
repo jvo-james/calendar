@@ -1055,7 +1055,7 @@
       <div class="brand">
         <div class="brand-mark"><i class="fa-solid fa-calendar-week"></i></div>
         <div class="title-wrap">
-          <h1 class="title">Peak Week Calendar</h1>
+          <h1 class="title" id="calendarGreeting">Welcome back</h1>
           <p class="subtitle">A sleek 24 hour timetable with hover cards and a focused day view.</p>
         </div>
       </div>
@@ -1707,5 +1707,46 @@ setInterval(() => {
 }, 1000);
     
   </script>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  function getFirstName(fullName) {
+    return String(fullName || "").trim().split(/\s+/)[0] || "there";
+  }
+
+  function setGreeting(user) {
+    const title = document.getElementById("calendarGreeting");
+    const firstName = getFirstName(user?.displayName);
+
+    const mode = sessionStorage.getItem("authEntryMode");
+
+    if (mode === "signup") {
+      title.innerHTML = `Hello ${firstName} <i class="fa-solid fa-hand-wave"></i>`;
+    } else {
+      title.textContent = `Welcome back ${firstName}`;
+    }
+
+    sessionStorage.removeItem("authEntryMode");
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setGreeting(user);
+    }
+  });
+</script>
 </body>
 </html>
