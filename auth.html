@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Peak Week | Access</title>
+
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <style>
+    :root{
+      --bg: #f7f9ff;
+      --bg2:#eef4ff;
+      --card:#ffffffcc;
+      --line:#dbe5f4;
+      --line2:#edf2fb;
+      --text:#13203a;
+      --muted:#5f6f88;
+      --accent:#5c7cfa;
+      --accent2:#7c5cff;
+      --accent3:#22b8cf;
+      --shadow: 0 24px 80px rgba(37, 58, 108, 0.10);
+      --shadow2: 0 12px 30px rgba(37, 58, 108, 0.08);
+      --radius: 28px;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 18%, rgba(92,124,250,.14), transparent 24%),
+        radial-gradient(circle at 86% 12%, rgba(124,92,255,.13), transparent 20%),
+        radial-gradient(circle at 76% 84%, rgba(34,184,207,.11), transparent 22%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      overflow-x:hidden;
+    }
+
+    body::before,
+    body::after{
+      content:"";
+      position:fixed;
+      inset:auto;
+      pointer-events:none;
+      border-radius:50%;
+      filter: blur(10px);
+      opacity:.55;
+      z-index:0;
+    }
+    body::before{
+      width:420px; height:420px;
+      left:-150px; top:-140px;
+      background: radial-gradient(circle, rgba(92,124,250,.20), transparent 65%);
+    }
+    body::after{
+      width:520px; height:520px;
+      right:-220px; bottom:-180px;
+      background: radial-gradient(circle, rgba(124,92,255,.18), transparent 65%);
+    }
+
+    .wrap{
+      position:relative;
+      z-index:1;
+      min-height:100vh;
+      padding:28px 16px 22px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:18px;
+    }
+
+    .intro{
+      width:min(820px, 100%);
+      text-align:center;
+      padding-top: 8px;
+      margin-top: 6px;
+    }
+
+    .brand-line{
+      display:inline-flex;
+      align-items:center;
+      gap:12px;
+      justify-content:center;
+      margin-bottom:16px;
+    }
+
+    .brand-mark{
+      width:50px;
+      height:50px;
+      border-radius:18px;
+      background: linear-gradient(135deg, rgba(92,124,250,1), rgba(124,92,255,1));
+      box-shadow: 0 16px 30px rgba(92,124,250,.25);
+      display:grid;
+      place-items:center;
+      color:#fff;
+      font-size:21px;
+      position:relative;
+      overflow:hidden;
+      flex:0 0 auto;
+    }
+    .brand-mark::after{
+      content:"";
+      position:absolute;
+      inset:-20% -45%;
+      background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.45) 50%, transparent 65%);
+      transform: rotate(18deg);
+      animation: shine 6s linear infinite;
+    }
+    @keyframes shine{
+      0%{ transform: translateX(-60%) rotate(18deg); }
+      100%{ transform: translateX(160%) rotate(18deg); }
+    }
+
+    .brand-text{
+      text-align:left;
+    }
+    .brand-text h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:-0.04em;
+      line-height:1.1;
+    }
+    .brand-text p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .headline{
+      margin:0;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height:.98;
+      letter-spacing:-.07em;
+    }
+
+    .support{
+      margin:14px auto 0;
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.8;
+      max-width: 58ch;
+    }
+
+    .card{
+      width:min(760px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.80));
+      border:1px solid rgba(255,255,255,.86);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      border-radius: var(--radius);
+      overflow:hidden;
+      padding:24px;
+      margin-top: 4px;
+    }
+
+    .tab-row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      background: rgba(255,255,255,.78);
+      border:1px solid var(--line);
+      border-radius: 20px;
+      padding:8px;
+      margin-bottom:18px;
+      box-shadow: var(--shadow2);
+    }
+
+    .tab{
+      border:none;
+      border-radius: 16px;
+      padding:13px 14px;
+      background:transparent;
+      color: var(--muted);
+      font:inherit;
+      font-weight:800;
+      cursor:pointer;
+      transition: .18s ease;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+
+    .tab.active{
+      background: linear-gradient(135deg, rgba(92,124,250,1), rgba(124,92,255,1));
+      color:#fff;
+      box-shadow: 0 14px 28px rgba(92,124,250,.20);
+    }
+
+    .panel-form{
+      display:none;
+      animation: pop .2s ease;
+    }
+    .panel-form.active{ display:block; }
+
+    @keyframes pop{
+      from{ opacity:0; transform: translateY(6px); }
+      to{ opacity:1; transform: translateY(0); }
+    }
+
+    .panel-form h2{
+      margin:0;
+      font-size: 28px;
+      letter-spacing:-.05em;
+      line-height:1.05;
+    }
+
+    .panel-form p{
+      margin:10px 0 22px;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:14px;
+    }
+
+    .field{
+      display:grid;
+      gap:8px;
+      margin-bottom:14px;
+    }
+
+    .field label{
+      font-size:11px;
+      font-weight:900;
+      color: var(--muted);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .input{
+      width:100%;
+      border-radius: 16px;
+      border:1px solid var(--line);
+      background:#fff;
+      padding:14px 15px;
+      outline:none;
+      font:inherit;
+      color: var(--text);
+      transition: .16s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+
+    .input::placeholder{ color:#91a0b7; }
+
+    .input:focus{
+      border-color: rgba(92,124,250,.55);
+      box-shadow: 0 0 0 4px rgba(92,124,250,.09);
+    }
+
+    .pass-wrap{
+      position:relative;
+    }
+
+    .toggle{
+      position:absolute;
+      right:10px;
+      top:50%;
+      transform:translateY(-50%);
+      border:none;
+      background:transparent;
+      color: var(--muted);
+      cursor:pointer;
+      padding:8px 10px;
+      border-radius:10px;
+      font-weight:800;
+    }
+    .toggle:hover{
+      background: rgba(92,124,250,.08);
+      color: var(--accent);
+    }
+
+    .action{
+      width:100%;
+      border:none;
+      border-radius: 16px;
+      padding:14px 16px;
+      font:inherit;
+      font-weight:900;
+      letter-spacing:-.02em;
+      color:#fff;
+      background: linear-gradient(135deg, rgba(92,124,250,1), rgba(124,92,255,1));
+      box-shadow: 0 16px 30px rgba(92,124,250,.20);
+      cursor:pointer;
+      transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      margin-top:6px;
+    }
+
+    .action:hover{
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+      box-shadow: 0 20px 36px rgba(92,124,250,.25);
+    }
+
+    .action:disabled{
+      opacity:.75;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .note{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+      text-align:center;
+    }
+
+    .small-link{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      color:var(--accent);
+      text-decoration:none;
+      font-weight:800;
+    }
+
+    .small-link:hover{ text-decoration:underline; }
+
+    .message{
+      display:none;
+      margin-top:14px;
+      padding:13px 14px;
+      border-radius:16px;
+      font-size:14px;
+      line-height:1.55;
+      border:1px solid transparent;
+    }
+
+    .message.error{
+      background: rgba(255,107,107,.10);
+      border-color: rgba(255,107,107,.22);
+      color: #b63a3a;
+    }
+
+    .message.success{
+      background: rgba(34,184,207,.10);
+      border-color: rgba(34,184,207,.22);
+      color: #13697a;
+    }
+
+    .shake{
+      animation: shake .33s ease;
+    }
+    @keyframes shake{
+      0%,100%{ transform:translateX(0); }
+      20%{ transform:translateX(-6px); }
+      40%{ transform:translateX(6px); }
+      60%{ transform:translateX(-4px); }
+      80%{ transform:translateX(4px); }
+    }
+
+    @media (max-width: 640px){
+      .wrap{
+        padding:18px 10px 16px;
+      }
+      .intro{
+        padding-top: 0;
+      }
+      .brand-line{
+        flex-direction:column;
+        gap:10px;
+      }
+      .brand-text{
+        text-align:center;
+      }
+      .headline{
+        font-size: clamp(28px, 10vw, 40px);
+      }
+      .support{
+        font-size:15px;
+      }
+      .card{
+        padding:16px;
+        border-radius:22px;
+      }
+      .panel-form h2{
+        font-size:24px;
+      }
+      .tab{
+        padding:12px 10px;
+        font-size:13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="intro">
+      <div class="brand-line">
+        <div class="brand-mark">
+          <i class="fa-solid fa-calendar-week"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Peak Week</h1>
+          <p>Your personal calendar space</p>
+        </div>
+      </div>
+
+      <h2 class="headline">Plan your week with ease.</h2>
+      <p class="support">
+        Create your account or sign in to continue right where you left off.
+      </p>
+    </header>
+
+    <section class="card">
+      <div class="tab-row">
+        <button class="tab active" id="tabSignUp" type="button">
+          <i class="fa-solid fa-user-plus"></i>
+          Sign up
+        </button>
+        <button class="tab" id="tabSignIn" type="button">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          Sign in
+        </button>
+      </div>
+
+      <div class="panel-form active" id="signUpPanel">
+        <h2>Create your account</h2>
+        <p>Enter your full name, email address, and a password with at least 6 characters.</p>
+
+        <form id="signUpForm" novalidate>
+          <div class="field">
+            <label for="fullName">Full name</label>
+            <input class="input" id="fullName" type="text" placeholder="Full name" autocomplete="name" required />
+          </div>
+
+          <div class="field">
+            <label for="signUpEmail">Email address</label>
+            <input class="input" id="signUpEmail" type="email" placeholder="Email address" autocomplete="email" required />
+          </div>
+
+          <div class="field">
+            <label for="signUpPassword">Password</label>
+            <div class="pass-wrap">
+              <input class="input" id="signUpPassword" type="password" placeholder="6 characters or more" autocomplete="new-password" minlength="6" required />
+              <button class="toggle" type="button" data-target="signUpPassword">Show</button>
+            </div>
+          </div>
+
+          <button class="action" id="signUpBtn" type="submit">
+            <i class="fa-solid fa-circle-check"></i>
+            Create account
+          </button>
+
+          <div class="message error" id="signUpError"></div>
+          <div class="message success" id="signUpSuccess"></div>
+        </form>
+      </div>
+
+      <div class="panel-form" id="signInPanel">
+        <h2>Welcome back</h2>
+        <p>Sign in with your email and password to open your calendar.</p>
+
+        <form id="signInForm" novalidate>
+          <div class="field">
+            <label for="signInEmail">Email address</label>
+            <input class="input" id="signInEmail" type="email" placeholder="Email address" autocomplete="email" required />
+          </div>
+
+          <div class="field">
+            <label for="signInPassword">Password</label>
+            <div class="pass-wrap">
+              <input class="input" id="signInPassword" type="password" placeholder="Your password" autocomplete="current-password" required />
+              <button class="toggle" type="button" data-target="signInPassword">Show</button>
+            </div>
+          </div>
+
+          <button class="action" id="signInBtn" type="submit">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            Sign in
+          </button>
+
+          <div class="message error" id="signInError"></div>
+          <div class="message success" id="signInSuccess"></div>
+        </form>
+      </div>
+
+      <div class="note">
+        <a class="small-link" href="javascript:void(0)" id="switchText">
+          <i class="fa-solid fa-rotate"></i>
+          Already have an account? Sign in
+        </a>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      updateProfile,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const tabSignUp = document.getElementById("tabSignUp");
+    const tabSignIn = document.getElementById("tabSignIn");
+    const signUpPanel = document.getElementById("signUpPanel");
+    const signInPanel = document.getElementById("signInPanel");
+    const switchText = document.getElementById("switchText");
+
+    const signUpForm = document.getElementById("signUpForm");
+    const signInForm = document.getElementById("signInForm");
+
+    const signUpBtn = document.getElementById("signUpBtn");
+    const signInBtn = document.getElementById("signInBtn");
+
+    const signUpError = document.getElementById("signUpError");
+    const signUpSuccess = document.getElementById("signUpSuccess");
+    const signInError = document.getElementById("signInError");
+    const signInSuccess = document.getElementById("signInSuccess");
+
+    const fullName = document.getElementById("fullName");
+    const signUpEmail = document.getElementById("signUpEmail");
+    const signUpPassword = document.getElementById("signUpPassword");
+    const signInEmail = document.getElementById("signInEmail");
+    const signInPassword = document.getElementById("signInPassword");
+
+    function showMode(mode){
+      const isSignUp = mode === "signup";
+      tabSignUp.classList.toggle("active", isSignUp);
+      tabSignIn.classList.toggle("active", !isSignUp);
+      signUpPanel.classList.toggle("active", isSignUp);
+      signInPanel.classList.toggle("active", !isSignUp);
+      switchText.innerHTML = isSignUp
+        ? '<i class="fa-solid fa-right-to-bracket"></i> Already have an account? Sign in'
+        : '<i class="fa-solid fa-user-plus"></i> New here? Create an account';
+      clearMessages();
+    }
+
+    function clearMessages(){
+      [signUpError, signUpSuccess, signInError, signInSuccess].forEach(el => {
+        el.style.display = "none";
+        el.textContent = "";
+      });
+    }
+
+    function showError(el, message){
+      el.textContent = message;
+      el.style.display = "block";
+    }
+
+    function showSuccess(el, message){
+      el.textContent = message;
+      el.style.display = "block";
+    }
+
+    function shake(form){
+      form.classList.remove("shake");
+      void form.offsetWidth;
+      form.classList.add("shake");
+    }
+
+    function firstNameFromFullName(name){
+      return String(name || "").trim().split(/\s+/)[0] || "";
+    }
+
+    function goToCalendar(){
+      window.location.href = "index.html";
+    }
+
+    function friendlyAuthMessage(error){
+      const code = error?.code || "";
+      if (code.includes("auth/email-already-in-use")) return "That email is already in use. Try signing in instead.";
+      if (code.includes("auth/invalid-email")) return "Enter a valid email address.";
+      if (code.includes("auth/weak-password")) return "Choose a password with at least 6 characters.";
+      if (code.includes("auth/user-not-found")) return "We could not find an account with that email.";
+      if (code.includes("auth/wrong-password")) return "That password is not correct.";
+      if (code.includes("auth/too-many-requests")) return "Too many tries. Please wait a moment and try again.";
+      return "Something went wrong. Please try again.";
+    }
+
+    document.querySelectorAll(".toggle").forEach(button => {
+      button.addEventListener("click", () => {
+        const target = document.getElementById(button.dataset.target);
+        const hidden = target.type === "password";
+        target.type = hidden ? "text" : "password";
+        button.textContent = hidden ? "Hide" : "Show";
+      });
+    });
+
+    tabSignUp.addEventListener("click", () => showMode("signup"));
+    tabSignIn.addEventListener("click", () => showMode("signin"));
+    switchText.addEventListener("click", () => {
+      showMode(signUpPanel.classList.contains("active") ? "signin" : "signup");
+    });
+
+    signUpForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const name = fullName.value.trim();
+      const email = signUpEmail.value.trim();
+      const password = signUpPassword.value;
+
+      if (!name){
+        showError(signUpError, "Please enter your full name.");
+        shake(signUpForm);
+        return;
+      }
+      if (!email){
+        showError(signUpError, "Please enter your email address.");
+        shake(signUpForm);
+        return;
+      }
+      if (password.length < 6){
+        showError(signUpError, "Your password must be at least 6 characters.");
+        shake(signUpForm);
+        return;
+      }
+
+      signUpBtn.disabled = true;
+      signUpBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating account';
+
+      try{
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(cred.user, { displayName: name });
+
+        const firstName = firstNameFromFullName(name);
+        showSuccess(signUpSuccess, `Welcome, ${firstName}. Your account is ready.`);
+        setTimeout(goToCalendar, 700);
+      }catch(error){
+        showError(signUpError, friendlyAuthMessage(error));
+        shake(signUpForm);
+      }finally{
+        signUpBtn.disabled = false;
+        signUpBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Create account';
+      }
+    });
+
+    signInForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const email = signInEmail.value.trim();
+      const password = signInPassword.value;
+
+      if (!email || !password){
+        showError(signInError, "Please fill in both fields.");
+        shake(signInForm);
+        return;
+      }
+
+      signInBtn.disabled = true;
+      signInBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in';
+
+      try{
+        await signInWithEmailAndPassword(auth, email, password);
+        showSuccess(signInSuccess, "You are signed in.");
+        setTimeout(goToCalendar, 500);
+      }catch(error){
+        showError(signInError, friendlyAuthMessage(error));
+        shake(signInForm);
+      }finally{
+        signInBtn.disabled = false;
+        signInBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Sign in';
+      }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) goToCalendar();
+    });
+
+    showMode("signup");
+  </script>
+</body>
+</html>
