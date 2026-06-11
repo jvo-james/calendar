@@ -9,7 +9,7 @@ const firebaseConfig = {
       projectId: "vitra-ai-712ea",
       storageBucket: "vitra-ai-712ea.appspot.com",
       messagingSenderId: "306868103753",
-      appId: "1:306868103753:web:e2d7700f8ad34c1e17ed98",
+      appId: "1:306868103753:web:e2d7700f8ad34c1e17ed98"
 };
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
