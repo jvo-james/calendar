@@ -569,14 +569,19 @@
     }
 
     function friendlyAuthMessage(error) {
-      const code = error?.code || "";
+      const code = String(error?.code || "");
       if (code.includes("auth/email-already-in-use")) return "That email is already in use. Try signing in instead.";
       if (code.includes("auth/invalid-email")) return "Enter a valid email address.";
       if (code.includes("auth/weak-password")) return "Choose a password with at least 6 characters.";
       if (code.includes("auth/user-not-found")) return "We could not find an account with that email.";
       if (code.includes("auth/wrong-password")) return "That password is not correct.";
       if (code.includes("auth/too-many-requests")) return "Too many tries. Please wait a moment and try again.";
-      return "Something went wrong. Please try again.";
+      if (code.includes("auth/operation-not-allowed")) return "Email/password sign-in is disabled in Firebase Authentication. Enable it in the Firebase console.";
+      if (code.includes("auth/unauthorized-domain") || code.includes("auth/app-not-authorized")) {
+        return `This site is not authorized for Firebase Auth (${window.location.hostname || "this domain"}). Add it in Firebase Console → Authentication → Settings → Authorized domains.`;
+      }
+      if (code.includes("auth/network-request-failed")) return "Firebase could not reach the network. Check your connection and try again.";
+      return `Something went wrong. Please try again. ${code ? `(${code})` : ""}`.trim();
     }
 
     document.querySelectorAll(".toggle").forEach(button => {
@@ -632,6 +637,7 @@
         showSuccess(signUpSuccess, `Welcome, ${firstName}. Your account is ready.`);
         setTimeout(goToCalendar, 700);
       } catch (error) {
+        console.error("Sign up failed:", error);
         showError(signUpError, friendlyAuthMessage(error));
         shake(signUpForm);
       } finally {
@@ -662,6 +668,7 @@
         showSuccess(signInSuccess, "You are signed in.");
         setTimeout(goToCalendar, 500);
       } catch (error) {
+        console.error("Sign in failed:", error);
         showError(signInError, friendlyAuthMessage(error));
         shake(signInForm);
       } finally {
