@@ -1622,6 +1622,17 @@
       render();
     }
 
+    function populateDayDropdown(){
+  dayInput.innerHTML = "";
+
+  DAYS.forEach((day, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = day.long;
+    dayInput.appendChild(option);
+  });
+}
+    
     function escapeHtml(str){
       return String(str)
         .replaceAll("&", "&amp;")
@@ -1686,13 +1697,15 @@
       }
     });
 
-    loadEvents();
-    render();
-    updateNowLine();
-    setInterval(() => {
-      renderStatus();
-      updateNowLine();
-    }, 1000);
+   loadEvents();
+populateDayDropdown();
+render();
+updateNowLine();
+setInterval(() => {
+  renderStatus();
+  updateNowLine();
+}, 1000);
+    
   </script>
 </body>
 </html>
