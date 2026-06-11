@@ -1163,10 +1163,8 @@
   </div>
 
   <script type="module">
-    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+    import { auth, db } from "./firebase.js";
     import {
-      getFirestore,
       collection,
       doc,
       onSnapshot,
@@ -1174,19 +1172,7 @@
       deleteDoc,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBhaYOcLMXuobCT-vaXr-zXTZnBfaheAIY",
-      authDomain: "vitra-ai-712ea.firebaseapp.com",
-      projectId: "vitra-ai-712ea",
-      storageBucket: "vitra-ai-712ea.appspot.com",
-      messagingSenderId: "306868103753",
-      appId: "1:306868103753:web:e2d7700f8ad34c1e17ed98"
-    };
-
-    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
     const DAYS = [
       { short: "Sun", long: "Sunday" },
