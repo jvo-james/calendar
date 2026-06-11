@@ -6,7 +6,28 @@
   <title>Peak Week Calendar</title>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.replace("auth.html");
+    }
+  });
+</script>
   <style>
     :root{
       --bg: #f7f9ff;
@@ -446,9 +467,16 @@
       background: linear-gradient(180deg, rgba(235,242,255,1), rgba(230,240,255,.96));
     }
 
-    .slot.is-occupied{
-      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(249,251,255,.96));
+    .slot::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(circle at 50% 0%, rgba(92,124,250,.08), transparent 50%);
+      opacity:0;
+      transition: opacity .15s ease;
+      pointer-events:none;
     }
+    .slot:hover::before{ opacity:1; }
 
     .slot-marker{
       position:absolute;
@@ -493,71 +521,199 @@
       transform: translateY(0) scale(1);
     }
 
-    .schedule-block{
-      grid-column: 2;
-      border-radius: 16px;
-      margin: 3px 4px;
-      border: 1px solid rgba(255,255,255,.38);
-      box-shadow: 0 14px 30px rgba(42, 63, 110, 0.14);
+    .event-bubble{
+      position:absolute;
+      top:8px;
+      left:10px;
+      width: min(560px, calc(100vw - 80px));
+      min-width: 300px;
+      min-height: 92px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,.99), rgba(248,251,255,.99));
+      border: 1px solid rgba(255,255,255,.95);
+      box-shadow: 0 16px 34px rgba(42, 63, 110, 0.14);
       overflow:hidden;
-      cursor:pointer;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      min-width:0;
-      z-index:3;
-      position:relative;
-      transition: box-shadow .16s ease, filter .16s ease;
-    }
-    .schedule-block:hover{
-      filter: brightness(1.02);
-      box-shadow: 0 18px 40px rgba(42, 63, 110, 0.18);
+      opacity:0;
+      transform: translateY(7px) scale(.985);
+      transition: opacity .18s ease, transform .18s ease, box-shadow .18s ease;
+      pointer-events:auto;
+      z-index:5;
     }
 
-    .schedule-inner{
-      padding: 10px 11px;
-      display:flex;
-      flex-direction:column;
-      gap:5px;
-      min-width:0;
+    .event-bubble.align-right{
+      left:auto;
+      right:10px;
+    }
+
+    .slot:hover .event-bubble,
+    .slot:focus-within .event-bubble,
+    .event-bubble:hover{
+      opacity:1;
+      transform: translateY(0) scale(1);
+    }
+
+    .event-accent{
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      width: 7px;
+      background: var(--accent);
+    }
+
+    .event-inner{
       height:100%;
+      padding: 12px 14px 12px 18px;
+      display:grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "title tools"
+        "meta tools"
+        "note note";
+      gap: 7px 12px;
+      align-items:center;
     }
 
-    .schedule-title{
-      font-size: 13px;
-      font-weight: 950;
-      line-height:1.15;
-      letter-spacing:-0.02em;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      min-width:0;
-    }
-
-    .schedule-meta{
+    .event-top{
+      grid-area:title;
       display:flex;
       align-items:center;
-      gap:8px;
-      font-size:11px;
-      font-weight:800;
-      opacity:.88;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      gap:10px;
+      min-width:0;
     }
 
-    .schedule-note{
-      font-size: 11px;
-      line-height:1.28;
-      opacity:.88;
+    .event-icon{
+      width:28px;
+      height:28px;
+      border-radius: 10px;
+      display:grid;
+      place-items:center;
+      background: rgba(92,124,250,.10);
+      color: var(--accent);
+      flex:0 0 auto;
+    }
+
+    .event-name{
+      font-size: 15px;
+      line-height:1.1;
+      font-weight: 950;
+      letter-spacing:-0.03em;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
       min-width:0;
     }
 
-    .schedule-block.deep{
-      box-shadow: 0 14px 30px rgba(0,0,0,.18);
+    .event-tools{
+      grid-area:tools;
+      display:flex;
+      gap:6px;
+      align-items:flex-start;
+      flex:0 0 auto;
+    }
+
+    .icon-btn{
+      width:28px;
+      height:28px;
+      border:none;
+      border-radius: 10px;
+      background: rgba(16, 25, 45, 0.04);
+      color: var(--muted);
+      cursor:pointer;
+      transition: background .15s ease, transform .15s ease, color .15s ease;
+    }
+    .icon-btn:hover{
+      background: rgba(92,124,250,.12);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .event-time{
+      grid-area:meta;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight:800;
+      display:flex;
+      align-items:center;
+      gap:7px;
+      min-width:0;
+      white-space:nowrap;
+    }
+
+    .event-note{
+      grid-area:note;
+      font-size: 12px;
+      line-height:1.35;
+      color:#4d5d77;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      min-width:0;
+    }
+
+    .event-badges{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .mini-badge{
+      padding: 7px 10px;
+      border-radius:999px;
+      background: rgba(92,124,250,.09);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing:.02em;
+      white-space:nowrap;
+    }
+
+    .event-stack{
+      display:flex;
+      flex-direction:column;
+      gap:7px;
+      min-width:0;
+    }
+
+    .stack-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background: rgba(16,25,45,.03);
+      border-radius: 14px;
+      padding: 8px 10px;
+      border: 1px solid rgba(16,25,45,.04);
+      min-width:0;
+    }
+
+    .stack-dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background: var(--accent);
+      flex:0 0 auto;
+    }
+
+    .stack-text{
+      min-width:0;
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .stack-name{
+      font-size: 13px;
+      font-weight:900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      min-width:0;
+    }
+    .stack-time{
+      font-size: 11px;
+      color: var(--muted);
+      font-weight:800;
+      white-space:nowrap;
     }
 
     .now-line{
@@ -786,18 +942,6 @@
       line-height:1.5;
     }
 
-    .error-banner{
-      display:none;
-      border: 1px solid rgba(255,107,107,.28);
-      background: rgba(255,107,107,.08);
-      color: #b91c1c;
-      border-radius: 16px;
-      padding: 12px 13px;
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1.45;
-    }
-
     @media (max-width: 1100px){
       :root{ --time-w: 74px; }
       .topbar{
@@ -863,6 +1007,21 @@
       .day-title .name{
         font-size: 13px;
       }
+      .event-bubble{
+        min-width: 250px;
+        width: min(92vw, 420px);
+        border-radius: 20px;
+      }
+      .event-inner{
+        padding: 11px 12px 11px 16px;
+        gap: 6px 10px;
+      }
+      .event-name{
+        font-size: 14px;
+      }
+      .event-note{
+        font-size: 11px;
+      }
       .modal{
         padding: 8px;
       }
@@ -906,17 +1065,9 @@
       .calendar-grid{
         min-width: 760px;
       }
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20% { transform: translateX(-3px); }
-      40% { transform: translateX(3px); }
-      60% { transform: translateX(-2px); }
-      80% { transform: translateX(2px); }
-    }
-    .shake {
-      animation: shake .28s linear 1;
+      .event-bubble{
+        width: min(88vw, 380px);
+      }
     }
   </style>
 </head>
@@ -926,8 +1077,8 @@
       <div class="brand">
         <div class="brand-mark"><i class="fa-solid fa-calendar-week"></i></div>
         <div class="title-wrap">
-          <h1 class="title">Peak Week Calendar</h1>
-          <p class="subtitle" id="subtitleText">A sleek 24 hour timetable with stable schedule blocks and cloud sync.</p>
+          <h1 class="title" id="calendarGreeting">Welcome back</h1>
+          <p class="subtitle">A sleek 24 hour timetable with hover cards and a focused day view.</p>
         </div>
       </div>
 
@@ -935,7 +1086,7 @@
         <button class="pill-btn active" id="weekModeBtn"><i class="fa-solid fa-border-all"></i> Week</button>
         <button class="pill-btn" id="dayModeBtn"><i class="fa-solid fa-calendar-day"></i> Day</button>
         <button class="pill-btn" id="todayBtn"><i class="fa-solid fa-location-crosshairs"></i> Today</button>
-        <button class="pill-btn" id="signOutBtn"><i class="fa-solid fa-right-from-bracket"></i> Sign out</button>
+        <button class="pill-btn" id="addBtn"><i class="fa-solid fa-plus"></i> Add schedule</button>
       </div>
     </header>
 
@@ -968,12 +1119,10 @@
         <button class="icon-btn" id="closeModalBtn" aria-label="Close editor"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="modal-body">
-        <div class="error-banner" id="errorBanner"></div>
-
         <div class="form-grid">
           <div class="field full">
             <label for="titleInput">Title</label>
-            <input id="titleInput" type="text" placeholder="Workout, team meeting, study..." />
+            <input id="titleInput" type="text" placeholder="Team meeting, gym, study, travel..." />
           </div>
 
           <div class="field">
@@ -982,7 +1131,7 @@
           </div>
 
           <div class="field">
-            <label for="timeInput">Start time</label>
+            <label>Start time</label>
             <input id="timeInput" type="time" step="1800" />
           </div>
 
@@ -1011,12 +1160,12 @@
           </div>
 
           <div class="field">
-            <label for="colorInput">Color</label>
+            <label for="colorInput">Accent</label>
             <input id="colorInput" type="color" value="#5c7cfa" />
           </div>
 
           <div class="field">
-            <label for="noteInput">Short note</label>
+            <label for="noteInput">Note</label>
             <input id="noteInput" type="text" placeholder="Optional short note..." />
           </div>
 
@@ -1025,10 +1174,7 @@
             <textarea id="detailInput" placeholder="Optional longer reminder, context, or instructions..."></textarea>
           </div>
         </div>
-
-        <div class="hint">
-          Click any empty time block to add a schedule. Click an existing colored block to edit it. The title is shown directly on the schedule block, and the text color switches automatically for dark or light colors.
-        </div>
+        <div class="hint">Hover any time block to reveal a long horizontal event bubble. Click a block to edit it. Everything saves in the browser.</div>
       </div>
       <div class="modal-actions">
         <button class="btn btn-ghost" id="cancelBtn"><i class="fa-solid fa-ban"></i> Cancel</button>
@@ -1038,35 +1184,7 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-    import {
-      getFirestore,
-      collection,
-      doc,
-      onSnapshot,
-      query,
-      orderBy,
-      setDoc,
-      deleteDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-    import { getStorage } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js";
-
-    const firebaseConfig = {
-       apiKey: "AIzaSyBhaYOcLMXuobCT-vaXr-zXTZnBfaheAIY",
-  authDomain: "vitra-ai-712ea.firebaseapp.com",
-  projectId: "vitra-ai-712ea",
-  storageBucket: "vitra-ai-712ea.appspot.com",
-  messagingSenderId: "306868103753",
-  appId: "1:306868103753:web:e2d7700f8ad34c1e17ed98"
-    };
-
+  <script>
     const DAYS = [
       { short: "Sun", long: "Sunday" },
       { short: "Mon", long: "Monday" },
@@ -1077,9 +1195,12 @@
       { short: "Sat", long: "Saturday" }
     ];
 
-    const $ = (sel) => document.querySelector(sel);
+    const ROW_H = 46;
+    const STORAGE_KEY = "peak-week-calendar-v2";
 
+    const $ = (sel) => document.querySelector(sel);
     const grid = $("#calendarGrid");
+    const shell = $("#calendarShell");
     const scroll = $("#calendarScroll");
     const nowLine = $("#nowLine");
     const nowLabel = $("#nowLabel");
@@ -1088,10 +1209,9 @@
     const weekModeBtn = $("#weekModeBtn");
     const dayModeBtn = $("#dayModeBtn");
     const todayBtn = $("#todayBtn");
-    const signOutBtn = $("#signOutBtn");
+    const addBtn = $("#addBtn");
 
     const focusValue = $("#focusValue");
-    const subtitleText = $("#subtitleText");
 
     const modal = $("#modal");
     const modalTitle = $("#modalTitle");
@@ -1099,7 +1219,6 @@
     const cancelBtn = $("#cancelBtn");
     const saveBtn = $("#saveBtn");
     const deleteBtn = $("#deleteBtn");
-    const errorBanner = $("#errorBanner");
 
     const titleInput = $("#titleInput");
     const dayInput = $("#dayInput");
@@ -1110,54 +1229,33 @@
     const noteInput = $("#noteInput");
     const detailInput = $("#detailInput");
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-
-    let currentUser = null;
-    let unsubscribeSchedules = null;
-
     const state = {
       viewMode: "week",
       selectedDay: new Date().getDay(),
       editingId: null,
       pendingCell: { day: new Date().getDay(), minutes: 9 * 60 },
-      schedules: []
+      events: []
     };
 
-    function cryptoId() {
+    const seedEvents = [
+      { id: cryptoId(), day: 1, start: 8 * 60 + 30, duration: 60, title: "Deep Work Sprint", color: "#5c7cfa", note: "Focus block", detail: "No distractions, no meetings." },
+      { id: cryptoId(), day: 2, start: 13 * 60, duration: 90, title: "Project Sync", color: "#22b8cf", note: "Team meeting", detail: "Walk through milestones and blockers." },
+      { id: cryptoId(), day: 4, start: 19 * 60 + 30, duration: 60, title: "Gym Session", color: "#7c5cff", note: "Training", detail: "Warm up, work sets, cooldown." }
+    ];
+
+    function cryptoId(){
       if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
       return "id-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
     }
 
-    function showError(message) {
-      errorBanner.textContent = message;
-      errorBanner.style.display = "block";
-    }
-
-    function clearError() {
-      errorBanner.textContent = "";
-      errorBanner.style.display = "none";
-    }
-
-    function escapeHtml(str) {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-    }
-
-    function minutesToTime(mins) {
+    function minutesToTime(mins){
       const m = ((mins % 1440) + 1440) % 1440;
       const h = Math.floor(m / 60);
       const mm = m % 60;
       return `${String(h).padStart(2,"0")}:${String(mm).padStart(2,"0")}`;
     }
 
-    function minutesToLabel(mins) {
+    function minutesToLabel(mins){
       const m = ((mins % 1440) + 1440) % 1440;
       let h = Math.floor(m / 60);
       const mm = m % 60;
@@ -1167,7 +1265,7 @@
       return mm === 0 ? `${h}${suffix}` : `${h}:${String(mm).padStart(2, "0")}${suffix}`;
     }
 
-    function formatDateLong(d) {
+    function formatDateLong(d){
       return new Intl.DateTimeFormat(undefined, {
         weekday: "long",
         month: "long",
@@ -1175,87 +1273,50 @@
       }).format(d);
     }
 
-    function currentDayIndex() {
+    function loadEvents(){
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved){
+        state.events = seedEvents;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.events));
+        return;
+      }
+      try{
+        state.events = JSON.parse(saved) || [];
+      }catch{
+        state.events = seedEvents;
+      }
+    }
+
+    function saveEvents(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.events));
+    }
+
+    function currentDayIndex(){
       return new Date().getDay();
     }
 
-    function visibleDays() {
+    function getVisibleDays(){
       return state.viewMode === "day" ? [state.selectedDay] : [0,1,2,3,4,5,6];
     }
 
-    function timeToMinutes(timeString) {
-      const [hh, mm] = String(timeString || "00:00").split(":").map(Number);
-      return (hh * 60) + (mm || 0);
+    function getEventsForSlot(day, mins){
+      return state.events
+        .filter(ev => ev.day === day && mins >= ev.start && mins < ev.start + ev.duration)
+        .sort((a,b) => a.start - b.start);
     }
 
-    function contrastColor(hex) {
-      const c = String(hex || "").replace("#", "");
-      if (!/^[0-9a-fA-F]{6}$/.test(c)) return "#111111";
-      const r = parseInt(c.slice(0, 2), 16) / 255;
-      const g = parseInt(c.slice(2, 4), 16) / 255;
-      const b = parseInt(c.slice(4, 6), 16) / 255;
-
-      const srgb = [r, g, b].map(v => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
-      const luminance = 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
-      return luminance > 0.58 ? "#111111" : "#ffffff";
+    function isEventStart(day, mins){
+      return state.events.some(ev => ev.day === day && ev.start === mins);
     }
 
-    function rgbaFromHex(hex, alpha = 0.18) {
-      const c = String(hex || "").replace("#", "");
-      if (!/^[0-9a-fA-F]{6}$/.test(c)) return `rgba(92,124,250,${alpha})`;
-      const r = parseInt(c.slice(0, 2), 16);
-      const g = parseInt(c.slice(2, 4), 16);
-      const b = parseInt(c.slice(4, 6), 16);
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-
-    function isDeepColor(hex) {
-      return contrastColor(hex) === "#ffffff";
-    }
-
-    function autoColor(day, minutes) {
-      const palette = ["#5c7cfa", "#7c5cff", "#22b8cf", "#12b886", "#ff8f59", "#f06595", "#1f2937", "#2f6bff"];
+    function autoColor(day, minutes){
+      const palette = ["#5c7cfa", "#7c5cff", "#22b8cf", "#12b886", "#ff8f59", "#f06595"];
       return palette[(day + Math.floor(minutes / 120)) % palette.length];
     }
 
-    function getEventsForCell(day, mins) {
-      return state.schedules
-        .filter(ev => ev.day === day && mins >= ev.start && mins < ev.start + ev.duration)
-        .sort((a, b) => a.start - b.start);
-    }
-
-    function getEventStartingAt(day, mins) {
-      return state.schedules.find(ev => ev.day === day && ev.start === mins) || null;
-    }
-
-    function isCurrentSlot(mins) {
-      const now = new Date();
-      const current = now.getHours() * 60 + now.getMinutes();
-      return current >= mins && current < mins + 30;
-    }
-
-    function populateDayDropdown() {
-      dayInput.innerHTML = "";
-      DAYS.forEach((day, index) => {
-        const option = document.createElement("option");
-        option.value = String(index);
-        option.textContent = day.long;
-        dayInput.appendChild(option);
-      });
-    }
-
-    function syncModeButtons() {
-      weekModeBtn.classList.toggle("active", state.viewMode === "week");
-      dayModeBtn.classList.toggle("active", state.viewMode === "day");
-      focusValue.textContent = state.viewMode === "day"
-        ? `Focus on ${DAYS[state.selectedDay].long}`
-        : "Week view";
-    }
-
-    function renderDayChips() {
+    function renderDayChips(){
       dayChips.innerHTML = "";
       const today = currentDayIndex();
-
       DAYS.forEach((d, idx) => {
         const chip = document.createElement("button");
         chip.className = "day-chip" +
@@ -1275,41 +1336,49 @@
       });
     }
 
-    function renderGrid() {
-      const days = visibleDays();
-      grid.style.setProperty("--cols", days.length);
+    function syncModeButtons(){
+      weekModeBtn.classList.toggle("active", state.viewMode === "week");
+      dayModeBtn.classList.toggle("active", state.viewMode === "day");
+      focusValue.textContent = state.viewMode === "day"
+        ? `Focus on ${DAYS[state.selectedDay].long}`
+        : "Week view";
+    }
+
+    function renderGrid(){
+      const visibleDays = getVisibleDays();
+      grid.style.setProperty("--cols", visibleDays.length);
       grid.innerHTML = "";
 
       const corner = document.createElement("div");
       corner.className = "corner";
       grid.appendChild(corner);
 
-      days.forEach((day, idx) => {
+      visibleDays.forEach((day) => {
         const head = document.createElement("div");
         head.className = "day-head" +
           (day === currentDayIndex() ? " today" : "") +
           (day === state.selectedDay ? " selected" : "");
-        head.style.gridColumn = String(idx + 2);
+        head.style.gridColumn = String(2 + visibleDays.indexOf(day));
 
+        const d = DAYS[day];
         head.innerHTML = `
           <div class="day-title">
-            <div class="name">${DAYS[day].long}</div>
+            <div class="name">${d.long}</div>
             <div class="meta">${day === currentDayIndex() ? "Today" : "Week day"}</div>
           </div>
           <div class="day-badge"><i class="fa-solid fa-sun"></i></div>
         `;
-
         head.addEventListener("click", () => {
           state.selectedDay = day;
           state.viewMode = "day";
           syncModeButtons();
           render();
         });
-
         grid.appendChild(head);
       });
 
-      for (let r = 0; r < 48; r++) {
+      const rows = 48;
+      for (let r = 0; r < rows; r++){
         const mins = r * 30;
 
         const timeCell = document.createElement("div");
@@ -1318,22 +1387,20 @@
         timeCell.innerHTML = `<span>${minutesToLabel(mins)}</span>`;
         grid.appendChild(timeCell);
 
-        days.forEach((day, idx) => {
+        visibleDays.forEach((day) => {
+          const colIndex = visibleDays.indexOf(day);
           const slot = document.createElement("button");
           slot.className = "slot" +
             (day === currentDayIndex() ? " today" : "") +
             (day === state.selectedDay ? " selected-day" : "") +
             (day === currentDayIndex() && isCurrentSlot(mins) ? " current-time" : "");
-
           slot.style.gridRow = String(r + 2);
-          slot.style.gridColumn = String(idx + 2);
-          slot.dataset.day = String(day);
-          slot.dataset.mins = String(mins);
+          slot.style.gridColumn = String(colIndex + 2);
+          slot.dataset.day = day;
+          slot.dataset.mins = mins;
 
-          const events = getEventsForCell(day, mins);
-          if (events.length > 0) {
-            slot.classList.add("is-occupied");
-          }
+          const matching = getEventsForSlot(day, mins);
+          const hasEventStart = isEventStart(day, mins);
 
           slot.innerHTML = `
             <span class="slot-marker"></span>
@@ -1343,22 +1410,17 @@
             </div>
           `;
 
-          if (events.length > 0) {
-            const startEvent = getEventStartingAt(day, mins);
-            if (startEvent) {
-              slot.appendChild(buildScheduleBlock(startEvent));
-            }
+          if (matching.length > 0){
+            slot.appendChild(buildBubble(matching, day, mins, hasEventStart, colIndex, visibleDays.length));
           }
 
           slot.addEventListener("click", (e) => {
-            const eventBlock = e.target.closest(".schedule-block");
-            if (eventBlock) return;
-
-            const startEvent = getEventStartingAt(day, mins);
+            const bubbleClick = e.target.closest(".icon-btn");
+            if (bubbleClick) return;
             openEditor({
               day,
               minutes: mins,
-              event: startEvent
+              event: matching[0] || null
             });
           });
 
@@ -1370,42 +1432,88 @@
       renderStatus();
     }
 
-    function buildScheduleBlock(ev) {
-      const block = document.createElement("div");
-      block.className = "schedule-block" + (isDeepColor(ev.color) ? " deep" : "");
-      block.style.gridRow = `${Math.floor(ev.start / 30) + 2} / ${Math.floor((ev.start + ev.duration + 29) / 30) + 2}`;
-      block.style.gridColumn = String(visibleDays().indexOf(ev.day) + 2);
-      block.style.background = ev.color;
-      block.style.color = contrastColor(ev.color);
-      block.style.boxShadow = `0 14px 30px ${rgbaFromHex(ev.color, 0.24)}`;
-      block.innerHTML = `
-        <div class="schedule-inner">
-          <div class="schedule-title">${escapeHtml(ev.title)}</div>
-          <div class="schedule-meta">
-            <i class="fa-regular fa-clock"></i>
-            ${minutesToLabel(ev.start)} - ${minutesToLabel(ev.start + ev.duration)}
-          </div>
-          ${ev.note ? `<div class="schedule-note">${escapeHtml(ev.note)}</div>` : ""}
+    function buildBubble(events, day, mins, isStart, colIndex, totalCols){
+      const bubble = document.createElement("div");
+      bubble.className = "event-bubble" + (colIndex >= Math.max(4, totalCols - 2) ? " align-right" : "");
+      const tallest = Math.max(...events.map(ev => ev.duration));
+      const minH = Math.max(92, Math.min(132, (tallest / 30) * 20 + 72));
+      bubble.style.minHeight = `${minH}px`;
+
+      const primary = events[0];
+      bubble.innerHTML = `
+        <div class="event-accent" style="background:${primary.color}"></div>
+        <div class="event-inner">
+          ${events.length === 1 ? singleEventMarkup(primary, day, mins, isStart) : stackedMarkup(events)}
         </div>
       `;
 
-      block.addEventListener("click", (e) => {
+      bubble.addEventListener("click", (e) => {
         e.stopPropagation();
-        openEditor({
-          day: ev.day,
-          minutes: ev.start,
-          event: ev
-        });
+        openEditor({ day, minutes: mins, event: primary });
       });
 
-      return block;
+      return bubble;
     }
 
-    function renderStatus() {
+    function singleEventMarkup(ev, day, mins, isStart){
+      const end = ev.start + ev.duration;
+      const currentText = isStart
+        ? `${minutesToLabel(ev.start)} - ${minutesToLabel(end)}`
+        : `In progress ${minutesToLabel(ev.start)} - ${minutesToLabel(end)}`;
+      return `
+        <div class="event-top">
+          <div class="event-icon"><i class="fa-solid fa-bolt"></i></div>
+          <div class="event-name">${escapeHtml(ev.title)}</div>
+        </div>
+        <div class="event-tools">
+          <button class="icon-btn" title="Edit"><i class="fa-solid fa-pen"></i></button>
+          <button class="icon-btn" title="Focus"><i class="fa-solid fa-circle-dot"></i></button>
+        </div>
+        <div class="event-time"><i class="fa-regular fa-clock"></i> ${currentText}</div>
+        <div class="event-note">${escapeHtml(ev.note || ev.detail || "Hover to reveal the full schedule bubble.")}</div>
+        <div class="event-badges">
+          <span class="mini-badge"><i class="fa-solid fa-calendar-day"></i> ${DAYS[day].long}</span>
+          <span class="mini-badge"><i class="fa-solid fa-wave-square"></i> ${Math.max(1, Math.round(ev.duration / 30))} slot${ev.duration > 30 ? "s" : ""}</span>
+        </div>
+      `;
+    }
+
+    function stackedMarkup(events){
+      return `
+        <div class="event-top">
+          <div class="event-icon"><i class="fa-solid fa-layer-group"></i></div>
+          <div class="event-name">${events.length} active items</div>
+        </div>
+        <div class="event-tools">
+          <button class="icon-btn" title="Edit top item"><i class="fa-solid fa-pen"></i></button>
+        </div>
+        <div class="event-time"><i class="fa-regular fa-clock"></i> Time overlap detected</div>
+        <div class="event-stack">
+          ${events.slice(0, 3).map(ev => `
+            <div class="stack-item">
+              <div class="stack-dot" style="background:${ev.color}"></div>
+              <div class="stack-text">
+                <div class="stack-name">${escapeHtml(ev.title)}</div>
+                <div class="stack-time">${minutesToLabel(ev.start)} - ${minutesToLabel(ev.start + ev.duration)}</div>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function isCurrentSlot(mins){
       const now = new Date();
+      const current = now.getHours() * 60 + now.getMinutes();
+      return current >= mins && current < mins + 30;
+    }
+
+    function renderStatus(){
+      const now = new Date();
+      $("#clockTime")?.remove();
+      $("#clockDate")?.remove();
       const live = document.querySelector(".mini-live");
       if (!live) return;
-
       live.innerHTML = `
         <div class="dot"></div>
         <div class="txt">
@@ -1416,29 +1524,37 @@
       `;
     }
 
-    function updateNowLine() {
+    function updateNowLine(){
+      const today = currentDayIndex();
+      const cols = getVisibleDays();
       const current = new Date();
-      const currentMins = current.getHours() * 60 + current.getMinutes() + current.getSeconds() / 60;
-      const targetDay = state.viewMode === "day" ? state.selectedDay : currentDayIndex();
-      const days = visibleDays();
+      const currentMins = current.getHours() * 60 + current.getMinutes() + current.getSeconds()/60;
+      const targetDay = state.viewMode === "day" ? state.selectedDay : today;
+      const dayVisible = cols.includes(targetDay);
 
-      if (!days.includes(targetDay)) {
+      if (!dayVisible){
         nowLine.style.display = "none";
         return;
       }
 
-      const currentRow = Math.floor(currentMins / 30);
-      const rowFraction = (currentMins % 30) / 30;
-      const slot = grid.querySelector(`.slot[data-day="${targetDay}"][data-mins="${currentRow * 30}"]`);
-      if (!slot) {
+      const firstCell = grid.querySelector(`.slot[data-day="${targetDay}"][data-mins="0"]`);
+      if (!firstCell){
         nowLine.style.display = "none";
         return;
       }
 
       const scrollRect = scroll.getBoundingClientRect();
-      const slotRect = slot.getBoundingClientRect();
+      const currentRow = Math.floor(currentMins / 30);
+      const rowFraction = (currentMins % 30) / 30;
 
-      const top = (slotRect.top - scrollRect.top) + (rowFraction * 30) + scroll.scrollTop;
+      const anySlot = grid.querySelector(`.slot[data-day="${targetDay}"][data-mins="${currentRow * 30}"]`);
+      if (!anySlot){
+        nowLine.style.display = "none";
+        return;
+      }
+
+      const slotRect = anySlot.getBoundingClientRect();
+      const top = (slotRect.top - scrollRect.top) + (rowFraction * ROW_H) + scroll.scrollTop;
       const left = slotRect.left - scrollRect.left + scroll.scrollLeft;
 
       nowLine.style.display = "block";
@@ -1448,10 +1564,9 @@
       nowLabel.textContent = `${minutesToLabel(Math.floor(currentMins))} now`;
     }
 
-    function openEditor({ day, minutes, event }) {
+    function openEditor({ day, minutes, event }){
       state.pendingCell = { day, minutes };
       state.editingId = event ? event.id : null;
-      clearError();
 
       modalTitle.textContent = event ? "Edit schedule" : "Add schedule";
       deleteBtn.style.display = event ? "inline-flex" : "none";
@@ -1459,172 +1574,101 @@
       dayInput.value = String(day);
       timeInput.value = minutesToTime(minutes);
 
-      if (event) {
+      if (event){
         durationHoursInput.value = String(Math.floor(event.duration / 60));
         durationMinutesInput.value = String(event.duration % 60);
-        titleInput.value = event.title || "";
-        colorInput.value = event.color || autoColor(day, minutes);
-        noteInput.value = event.note || "";
-        detailInput.value = event.detail || "";
-      } else {
+      }else{
         durationHoursInput.value = "1";
         durationMinutesInput.value = "0";
-        titleInput.value = "";
-        colorInput.value = autoColor(day, minutes);
-        noteInput.value = "";
-        detailInput.value = "";
       }
+
+      titleInput.value = event ? event.title : "";
+      colorInput.value = event ? event.color : autoColor(day, minutes);
+      noteInput.value = event ? (event.note || "") : "";
+      detailInput.value = event ? (event.detail || "") : "";
 
       modal.classList.add("show");
       setTimeout(() => titleInput.focus(), 50);
     }
 
-    function closeEditor() {
+    function closeEditor(){
       modal.classList.remove("show");
       state.editingId = null;
-      clearError();
     }
 
-    function render() {
-      renderDayChips();
-      syncModeButtons();
-      renderGrid();
-      renderStatus();
-    }
-
-    async function persistSchedule(payload) {
-      if (!currentUser) {
-        throw new Error("You are not signed in.");
-      }
-
-      const ref = doc(db, "users", currentUser.uid, "schedules", payload.id);
-      await setDoc(ref, payload, { merge: false });
-    }
-
-    async function removeSchedule(id) {
-      if (!currentUser) {
-        throw new Error("You are not signed in.");
-      }
-      await deleteDoc(doc(db, "users", currentUser.uid, "schedules", id));
-    }
-
-    async function saveEditor() {
-      clearError();
-
+    function saveEditor(){
       const title = titleInput.value.trim();
-      if (!title) {
-        showError("Please enter a title for the schedule.");
+      if (!title){
         titleInput.focus();
-        titleInput.classList.add("shake");
-        setTimeout(() => titleInput.classList.remove("shake"), 300);
+        titleInput.style.borderColor = "#ff6b6b";
         return;
       }
 
       const day = Number(dayInput.value);
-      const start = timeToMinutes(timeInput.value);
+      const [hh, mm] = timeInput.value.split(":").map(Number);
+      const start = hh * 60 + mm;
       const hours = Math.max(0, Number(durationHoursInput.value || 0));
       const minutes = Math.max(0, Number(durationMinutesInput.value || 0));
       const duration = (hours * 60) + minutes;
 
-      if (duration <= 0) {
-        showError("Duration must be at least 15 minutes or more.");
+      if (duration <= 0){
         durationHoursInput.focus();
         return;
       }
 
-      const color = colorInput.value || autoColor(day, start);
       const payload = {
         id: state.editingId || cryptoId(),
-        uid: currentUser.uid,
         day,
         start,
         duration,
         title,
-        color,
+        color: colorInput.value || autoColor(day, start),
         note: noteInput.value.trim(),
-        detail: detailInput.value.trim(),
-        updatedAt: Date.now(),
-        createdAt: state.editingId ? undefined : Date.now(),
-        createdAtServer: state.editingId ? undefined : serverTimestamp()
+        detail: detailInput.value.trim()
       };
 
-      if (state.editingId) {
-        delete payload.createdAtServer;
-      }
+      const idx = state.events.findIndex(ev => ev.id === payload.id);
+      if (idx >= 0) state.events[idx] = payload;
+      else state.events.unshift(payload);
 
-      try {
-        await persistSchedule(payload);
-        closeEditor();
-      } catch (err) {
-        console.error("Save failed:", err);
-        showError(err?.message || "Could not save the schedule.");
-      }
-    }
-
-    async function deleteEditor() {
-      clearError();
-
-      if (!state.editingId) return;
-
-      try {
-        await removeSchedule(state.editingId);
-        closeEditor();
-      } catch (err) {
-        console.error("Delete failed:", err);
-        showError(err?.message || "Could not delete the schedule.");
-      }
-    }
-
-    function populateSchedulesFromSnapshot(snapshot) {
-      const items = [];
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        items.push({
-          id: docSnap.id,
-          day: Number(data.day || 0),
-          start: Number(data.start || 0),
-          duration: Number(data.duration || 30),
-          title: String(data.title || ""),
-          color: String(data.color || "#5c7cfa"),
-          note: String(data.note || ""),
-          detail: String(data.detail || ""),
-          updatedAt: Number(data.updatedAt || 0)
-        });
-      });
-
-      state.schedules = items.sort((a, b) => a.start - b.start);
+      saveEvents();
+      closeEditor();
       render();
     }
 
-    function subscribeToSchedules() {
-      if (!currentUser) return;
-
-      if (unsubscribeSchedules) {
-        unsubscribeSchedules();
-        unsubscribeSchedules = null;
-      }
-
-      const q = query(
-        collection(db, "users", currentUser.uid, "schedules"),
-        orderBy("start", "asc")
-      );
-
-      unsubscribeSchedules = onSnapshot(q, (snapshot) => {
-        populateSchedulesFromSnapshot(snapshot);
-      }, (err) => {
-        console.error("Firestore listener error:", err);
-        subtitleText.textContent = "Cloud sync is unavailable right now.";
-      });
+    function deleteEditor(){
+      if (!state.editingId) return;
+      state.events = state.events.filter(ev => ev.id !== state.editingId);
+      saveEvents();
+      closeEditor();
+      render();
     }
 
-    async function handleSignOut() {
-      try {
-        await signOut(auth);
-        window.location.href = "auth.html";
-      } catch (err) {
-        console.error("Sign out failed:", err);
-        subtitleText.textContent = "Sign out failed. Please try again.";
-      }
+    function populateDayDropdown(){
+  dayInput.innerHTML = "";
+
+  DAYS.forEach((day, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = day.long;
+    dayInput.appendChild(option);
+  });
+}
+    
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function render(){
+      renderDayChips();
+      syncModeButtons();
+      renderGrid();
+      renderStatus();
     }
 
     weekModeBtn.addEventListener("click", () => {
@@ -1646,7 +1690,10 @@
       render();
     });
 
-    signOutBtn.addEventListener("click", handleSignOut);
+    addBtn.addEventListener("click", () => {
+      openEditor(state.pendingCell);
+    });
+
     closeModalBtn.addEventListener("click", closeEditor);
     cancelBtn.addEventListener("click", closeEditor);
     saveBtn.addEventListener("click", saveEditor);
@@ -1656,36 +1703,72 @@
       if (e.target === modal) closeEditor();
     });
 
-    window.addEventListener("resize", updateNowLine);
-    scroll.addEventListener("scroll", updateNowLine);
+    window.addEventListener("resize", () => {
+      updateNowLine();
+    });
+
+    scroll.addEventListener("scroll", () => {
+      updateNowLine();
+    });
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") closeEditor();
-      if (e.key.toLowerCase() === "n" && (e.ctrlKey || e.metaKey)) {
+      if (e.key.toLowerCase() === "n" && (e.ctrlKey || e.metaKey)){
         e.preventDefault();
         openEditor(state.pendingCell);
       }
     });
 
-    populateDayDropdown();
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "auth.html";
-        return;
-      }
-
-      currentUser = user;
-      subtitleText.textContent = `Signed in as ${user.email || "user"}. Your schedules are synced in Firestore.`;
-      subscribeToSchedules();
-      render();
-      updateNowLine();
-    });
-
-    setInterval(() => {
-      renderStatus();
-      updateNowLine();
-    }, 1000);
+   loadEvents();
+populateDayDropdown();
+render();
+updateNowLine();
+setInterval(() => {
+  renderStatus();
+  updateNowLine();
+}, 1000);
+    
   </script>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  function getFirstName(fullName) {
+    return String(fullName || "").trim().split(/\s+/)[0] || "there";
+  }
+
+  function setGreeting(user) {
+    const title = document.getElementById("calendarGreeting");
+    const firstName = getFirstName(user?.displayName);
+
+    const mode = sessionStorage.getItem("authEntryMode");
+
+    if (mode === "signup") {
+      title.innerHTML = `Hello ${firstName} <i class="fa-solid fa-hand-wave"></i>`;
+    } else {
+      title.textContent = `Welcome back ${firstName}`;
+    }
+
+    sessionStorage.removeItem("authEntryMode");
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setGreeting(user);
+    }
+  });
+</script>
 </body>
 </html>
