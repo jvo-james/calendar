@@ -493,197 +493,201 @@
     </section>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      updateProfile,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    updateProfile,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-    const tabSignUp = document.getElementById("tabSignUp");
-    const tabSignIn = document.getElementById("tabSignIn");
-    const signUpPanel = document.getElementById("signUpPanel");
-    const signInPanel = document.getElementById("signInPanel");
-    const switchText = document.getElementById("switchText");
+  const tabSignUp = document.getElementById("tabSignUp");
+  const tabSignIn = document.getElementById("tabSignIn");
+  const signUpPanel = document.getElementById("signUpPanel");
+  const signInPanel = document.getElementById("signInPanel");
+  const switchText = document.getElementById("switchText");
 
-    const signUpForm = document.getElementById("signUpForm");
-    const signInForm = document.getElementById("signInForm");
+  const signUpForm = document.getElementById("signUpForm");
+  const signInForm = document.getElementById("signInForm");
 
-    const signUpBtn = document.getElementById("signUpBtn");
-    const signInBtn = document.getElementById("signInBtn");
+  const signUpBtn = document.getElementById("signUpBtn");
+  const signInBtn = document.getElementById("signInBtn");
 
-    const signUpError = document.getElementById("signUpError");
-    const signUpSuccess = document.getElementById("signUpSuccess");
-    const signInError = document.getElementById("signInError");
-    const signInSuccess = document.getElementById("signInSuccess");
+  const signUpError = document.getElementById("signUpError");
+  const signUpSuccess = document.getElementById("signUpSuccess");
+  const signInError = document.getElementById("signInError");
+  const signInSuccess = document.getElementById("signInSuccess");
 
-    const fullName = document.getElementById("fullName");
-    const signUpEmail = document.getElementById("signUpEmail");
-    const signUpPassword = document.getElementById("signUpPassword");
-    const signInEmail = document.getElementById("signInEmail");
-    const signInPassword = document.getElementById("signInPassword");
+  const fullName = document.getElementById("fullName");
+  const signUpEmail = document.getElementById("signUpEmail");
+  const signUpPassword = document.getElementById("signUpPassword");
+  const signInEmail = document.getElementById("signInEmail");
+  const signInPassword = document.getElementById("signInPassword");
 
-    function showMode(mode){
-      const isSignUp = mode === "signup";
-      tabSignUp.classList.toggle("active", isSignUp);
-      tabSignIn.classList.toggle("active", !isSignUp);
-      signUpPanel.classList.toggle("active", isSignUp);
-      signInPanel.classList.toggle("active", !isSignUp);
-      switchText.innerHTML = isSignUp
-        ? '<i class="fa-solid fa-right-to-bracket"></i> Already have an account? Sign in'
-        : '<i class="fa-solid fa-user-plus"></i> New here? Create an account';
-      clearMessages();
-    }
+  function showMode(mode) {
+    const isSignUp = mode === "signup";
+    tabSignUp.classList.toggle("active", isSignUp);
+    tabSignIn.classList.toggle("active", !isSignUp);
+    signUpPanel.classList.toggle("active", isSignUp);
+    signInPanel.classList.toggle("active", !isSignUp);
+    switchText.innerHTML = isSignUp
+      ? '<i class="fa-solid fa-right-to-bracket"></i> Already have an account? Sign in'
+      : '<i class="fa-solid fa-user-plus"></i> New here? Create an account';
+    clearMessages();
+  }
 
-    function clearMessages(){
-      [signUpError, signUpSuccess, signInError, signInSuccess].forEach(el => {
-        el.style.display = "none";
-        el.textContent = "";
-      });
-    }
-
-    function showError(el, message){
-      el.textContent = message;
-      el.style.display = "block";
-    }
-
-    function showSuccess(el, message){
-      el.textContent = message;
-      el.style.display = "block";
-    }
-
-    function shake(form){
-      form.classList.remove("shake");
-      void form.offsetWidth;
-      form.classList.add("shake");
-    }
-
-    function firstNameFromFullName(name){
-      return String(name || "").trim().split(/\s+/)[0] || "";
-    }
-
-    function goToCalendar(){
-      window.location.href = "index.html";
-    }
-
-    function friendlyAuthMessage(error){
-      const code = error?.code || "";
-      if (code.includes("auth/email-already-in-use")) return "That email is already in use. Try signing in instead.";
-      if (code.includes("auth/invalid-email")) return "Enter a valid email address.";
-      if (code.includes("auth/weak-password")) return "Choose a password with at least 6 characters.";
-      if (code.includes("auth/user-not-found")) return "We could not find an account with that email.";
-      if (code.includes("auth/wrong-password")) return "That password is not correct.";
-      if (code.includes("auth/too-many-requests")) return "Too many tries. Please wait a moment and try again.";
-      return "Something went wrong. Please try again.";
-    }
-
-    document.querySelectorAll(".toggle").forEach(button => {
-      button.addEventListener("click", () => {
-        const target = document.getElementById(button.dataset.target);
-        const hidden = target.type === "password";
-        target.type = hidden ? "text" : "password";
-        button.textContent = hidden ? "Hide" : "Show";
-      });
+  function clearMessages() {
+    [signUpError, signUpSuccess, signInError, signInSuccess].forEach(el => {
+      el.style.display = "none";
+      el.textContent = "";
     });
+  }
 
-    tabSignUp.addEventListener("click", () => showMode("signup"));
-    tabSignIn.addEventListener("click", () => showMode("signin"));
-    switchText.addEventListener("click", () => {
-      showMode(signUpPanel.classList.contains("active") ? "signin" : "signup");
+  function showError(el, message) {
+    el.textContent = message;
+    el.style.display = "block";
+  }
+
+  function showSuccess(el, message) {
+    el.textContent = message;
+    el.style.display = "block";
+  }
+
+  function shake(form) {
+    form.classList.remove("shake");
+    void form.offsetWidth;
+    form.classList.add("shake");
+  }
+
+  function firstNameFromFullName(name) {
+    return String(name || "").trim().split(/\s+/)[0] || "";
+  }
+
+  function goToCalendar() {
+    window.location.href = "index.html";
+  }
+
+  function friendlyAuthMessage(error) {
+    const code = error?.code || "";
+    if (code.includes("auth/email-already-in-use")) return "That email is already in use. Try signing in instead.";
+    if (code.includes("auth/invalid-email")) return "Enter a valid email address.";
+    if (code.includes("auth/weak-password")) return "Choose a password with at least 6 characters.";
+    if (code.includes("auth/user-not-found")) return "We could not find an account with that email.";
+    if (code.includes("auth/wrong-password")) return "That password is not correct.";
+    if (code.includes("auth/too-many-requests")) return "Too many tries. Please wait a moment and try again.";
+    return "Something went wrong. Please try again.";
+  }
+
+  document.querySelectorAll(".toggle").forEach(button => {
+    button.addEventListener("click", () => {
+      const target = document.getElementById(button.dataset.target);
+      const hidden = target.type === "password";
+      target.type = hidden ? "text" : "password";
+      button.textContent = hidden ? "Hide" : "Show";
     });
+  });
 
-    signUpForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      clearMessages();
+  tabSignUp.addEventListener("click", () => showMode("signup"));
+  tabSignIn.addEventListener("click", () => showMode("signin"));
+  switchText.addEventListener("click", () => {
+    showMode(signUpPanel.classList.contains("active") ? "signin" : "signup");
+  });
 
-      const name = fullName.value.trim();
-      const email = signUpEmail.value.trim();
-      const password = signUpPassword.value;
+  signUpForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearMessages();
 
-      if (!name){
-        showError(signUpError, "Please enter your full name.");
-        shake(signUpForm);
-        return;
-      }
-      if (!email){
-        showError(signUpError, "Please enter your email address.");
-        shake(signUpForm);
-        return;
-      }
-      if (password.length < 6){
-        showError(signUpError, "Your password must be at least 6 characters.");
-        shake(signUpForm);
-        return;
-      }
+    const name = fullName.value.trim();
+    const email = signUpEmail.value.trim();
+    const password = signUpPassword.value;
 
-      signUpBtn.disabled = true;
-      signUpBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating account';
+    if (!name) {
+      showError(signUpError, "Please enter your full name.");
+      shake(signUpForm);
+      return;
+    }
 
-      try{
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(cred.user, { displayName: name });
+    if (!email) {
+      showError(signUpError, "Please enter your email address.");
+      shake(signUpForm);
+      return;
+    }
 
-        const firstName = firstNameFromFullName(name);
-        showSuccess(signUpSuccess, `Welcome, ${firstName}. Your account is ready.`);
-        setTimeout(goToCalendar, 700);
-      }catch(error){
-        showError(signUpError, friendlyAuthMessage(error));
-        shake(signUpForm);
-      }finally{
-        signUpBtn.disabled = false;
-        signUpBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Create account';
-      }
-    });
+    if (password.length < 6) {
+      showError(signUpError, "Your password must be at least 6 characters.");
+      shake(signUpForm);
+      return;
+    }
 
-    signInForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      clearMessages();
+    signUpBtn.disabled = true;
+    signUpBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating account';
 
-      const email = signInEmail.value.trim();
-      const password = signInPassword.value;
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, { displayName: name });
 
-      if (!email || !password){
-        showError(signInError, "Please fill in both fields.");
-        shake(signInForm);
-        return;
-      }
+      const firstName = firstNameFromFullName(name);
+      sessionStorage.setItem("authEntryMode", "signup");
+      showSuccess(signUpSuccess, `Welcome, ${firstName}. Your account is ready.`);
+      setTimeout(goToCalendar, 700);
+    } catch (error) {
+      showError(signUpError, friendlyAuthMessage(error));
+      shake(signUpForm);
+    } finally {
+      signUpBtn.disabled = false;
+      signUpBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Create account';
+    }
+  });
 
-      signInBtn.disabled = true;
-      signInBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in';
+  signInForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearMessages();
 
-      try{
-        await signInWithEmailAndPassword(auth, email, password);
-        showSuccess(signInSuccess, "You are signed in.");
-        setTimeout(goToCalendar, 500);
-      }catch(error){
-        showError(signInError, friendlyAuthMessage(error));
-        shake(signInForm);
-      }finally{
-        signInBtn.disabled = false;
-        signInBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Sign in';
-      }
-    });
+    const email = signInEmail.value.trim();
+    const password = signInPassword.value;
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) goToCalendar();
-    });
+    if (!email || !password) {
+      showError(signInError, "Please fill in both fields.");
+      shake(signInForm);
+      return;
+    }
 
-    showMode("signup");
-  </script>
+    signInBtn.disabled = true;
+    signInBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in';
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      sessionStorage.setItem("authEntryMode", "signin");
+      showSuccess(signInSuccess, "You are signed in.");
+      setTimeout(goToCalendar, 500);
+    } catch (error) {
+      showError(signInError, friendlyAuthMessage(error));
+      shake(signInForm);
+    } finally {
+      signInBtn.disabled = false;
+      signInBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Sign in';
+    }
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) goToCalendar();
+  });
+
+  showMode("signup");
+</script>
 </body>
 </html>
