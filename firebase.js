@@ -4,12 +4,12 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyBhaYOcLMXuobCT-vaXr-zXTZnBfaheAIY",
+      authDomain: "vitra-ai-712ea.firebaseapp.com",
+      projectId: "vitra-ai-712ea",
+      storageBucket: "vitra-ai-712ea.appspot.com",
+      messagingSenderId: "306868103753",
+      appId: "1:306868103753:web:e2d7700f8ad34c1e17ed98",
 };
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
